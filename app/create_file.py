@@ -1,7 +1,6 @@
 import os
 import sys
 from datetime import datetime
-from pathlib import Path
 
 # 1. Lecture de sys.argv
 args = sys.argv[1:]
@@ -21,8 +20,19 @@ if "-f" in args:
     if idx_f + 1 < len(args):
         filename = args[idx_f + 1]
 
-# 2. Gestion des dossiers avec os.makedirs
-dir_path = Path(*directories) if directories else None
+
+def save_to_file(file_path: str, block_to_write: str) -> None:
+    """Fonction auxiliaire DRY pour gérer l'écriture et le mode append."""
+    if os.path.exists(file_path) and os.path.getsize(file_path) > 0:
+        with open(file_path, "a", encoding="utf-8") as file:
+            file.write("\n\n" + block_to_write)
+    else:
+        with open(file_path, "a", encoding="utf-8") as file:
+            file.write(block_to_write)
+
+
+# 2. Gestion des dossiers avec os.path.join
+dir_path = os.path.join(*directories) if directories else None
 
 if dir_path:
     os.makedirs(dir_path, exist_ok=True)
@@ -39,7 +49,7 @@ if filename:
     # L'horodatage est isolé sur sa première ligne
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     formatted_block = f"{timestamp}\n"
-    
+
     # Ajout des lignes de contenu indexées
     for idx, content in enumerate(lines, start=1):
         if idx == len(lines):
@@ -47,12 +57,8 @@ if filename:
         else:
             formatted_block += f"{idx} {content}\n"
 
-    full_file_path = dir_path / filename if dir_path else Path(filename)
+    # Construction du chemin final via os.path.join
+    full_file_path = os.path.join(dir_path, filename) if dir_path else filename
 
-    # Vérification de l'existence du fichier pour le mode append
-    if full_file_path.exists() and full_file_path.stat().st_size > 0:
-        with full_file_path.open("a", encoding="utf-8") as file:
-            file.write("\n\n" + formatted_block)
-    else:
-        with full_file_path.open("a", encoding="utf-8") as file:
-            file.write(formatted_block)
+    # Appel de la fonction unique (Respect du principe DRY)
+    save_to_file(full_file_path, formatted_block)
