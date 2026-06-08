@@ -1,3 +1,4 @@
+import os
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -20,11 +21,11 @@ if "-f" in args:
     if idx_f + 1 < len(args):
         filename = args[idx_f + 1]
 
-# 2. Gestion des dossiers
+# 2. Gestion des dossiers avec os.makedirs
 dir_path = Path(*directories) if directories else None
 
 if dir_path:
-    dir_path.mkdir(parents=True, exist_ok=True)
+    os.makedirs(dir_path, exist_ok=True)
 
 # 3. Écriture dans le fichier
 if filename:
@@ -38,8 +39,8 @@ if filename:
     # L'horodatage est isolé sur sa première ligne
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     formatted_block = f"{timestamp}\n"
-
-    # Ajout des lignes de contenu indexées (avec un \n normal en fin de ligne)
+    
+    # Ajout des lignes de contenu indexées
     for idx, content in enumerate(lines, start=1):
         if idx == len(lines):
             formatted_block += f"{idx} {content}"
@@ -48,6 +49,7 @@ if filename:
 
     full_file_path = dir_path / filename if dir_path else Path(filename)
 
+    # Vérification de l'existence du fichier pour le mode append
     if full_file_path.exists() and full_file_path.stat().st_size > 0:
         with full_file_path.open("a", encoding="utf-8") as file:
             file.write("\n\n" + formatted_block)
